@@ -1,0 +1,44 @@
+# Gitleaks configuration for detecting secrets
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "google-api-key"
+description = "Google API Key"
+regex = '''AIza[0-9A-Za-z\-_]{35}'''
+tags = ["key", "Google"]
+
+[[rules]]
+id = "google-service-account"
+description = "Google Service Account"
+regex = '''\"type\"\s*:\s*\"service_account\"'''
+tags = ["key", "Google"]
+
+[[rules]]
+id = "supabase-key"
+description = "Supabase API Key"
+regex = '''(supabase|SUPABASE)[\w\-]*[_\-]*(KEY|key|Key)[\w\-]*\s*[:=]\s*["']?[A-Za-z0-9\-_\.]{20,}["']?'''
+tags = ["key", "Supabase"]
+
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'''
+tags = ["key", "JWT"]
+
+[[rules]]
+id = "database-url"
+description = "Database Connection String"
+regex = '''(postgres|postgresql|mysql|mongodb):\/\/[^:]+:[^@]+@[^\/]+\/\w+'''
+tags = ["database", "credentials"]
+
+# Allowlist for test files and examples
+[[allowlist]]
+description = "Allow test secrets in test files"
+paths = [
+    '''.*test.*''',
+    '''.*spec.*''',
+    '''.env.example''',
+    '''example.*'''
+]
