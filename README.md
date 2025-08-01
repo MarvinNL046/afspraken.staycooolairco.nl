@@ -1,249 +1,176 @@
-# StayCool Airco - Appointment Booking System
+# Supabase CLI (v1)
 
-A modern, production-ready appointment booking system for StayCool Airco, built with Next.js 15, TypeScript, and deployed on Netlify.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main)
 
-## 🚀 Features
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-- **Smart Appointment Booking**: Real-time availability checking with service area validation
-- **Multi-step Booking Flow**: User-friendly wizard interface with progress tracking
-- **Calendar Integration**: Automatic synchronization with Google Calendar
-- **GoHighLevel CRM Integration**: Seamless lead and appointment sync
-- **Service Area Validation**: Automatic address validation and travel time calculation
-- **Mobile Responsive**: Optimized for all devices
-- **Real-time Updates**: Live availability updates using optimistic UI patterns
-- **Secure Authentication**: JWT-based booking tokens with session management
-- **Email Notifications**: Automated confirmations and reminders
-- **Admin Monitoring**: Real-time dashboard for business metrics
+This repository contains all the functionality for Supabase CLI.
 
-## 🛠️ Tech Stack
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Pushing your local changes to production
+- [x] Create and Deploy Supabase Functions
+- [ ] Manage your Supabase Account
+- [x] Manage your Supabase Projects
+- [x] Generating types directly from your database schema
+- [ ] Generating API and validation schemas from your database
 
-- **Frontend**: Next.js 15.4.5, React 19, TypeScript
-- **Styling**: Tailwind CSS, Radix UI
-- **Backend**: Netlify Functions (Serverless)
-- **Database**: PostgreSQL (Supabase) with Prisma ORM
-- **Cache**: Redis for performance optimization
-- **APIs**: Google Maps, Google Calendar, GoHighLevel
-- **Testing**: Jest, Playwright, React Testing Library
-- **Monitoring**: Datadog, Sentry
-- **Deployment**: Netlify with serverless functions
+## Getting started
 
-## 📋 Prerequisites
+### Install the CLI
 
-- Node.js 22.16.0 (exact version required)
-- npm 10.x
-- PostgreSQL database (Supabase recommended)
-- Redis instance (optional but recommended)
-- Google Cloud Platform account (for Maps and Calendar APIs)
-- GoHighLevel account with API access
-- Netlify account for deployment
-
-## 🔧 Installation
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/MarvinNL046/afspraken.staycooolairco.nl.git
-cd afspraken.staycooolairco.nl
-```
-
-### 2. Install dependencies
-```bash
-npm install
-```
-
-### 3. Set up environment variables
-```bash
-cp .env.example .env.local
-```
-
-Fill in all required environment variables in `.env.local`
-
-### 4. Start local services (development)
-```bash
-# Start database and Redis using Docker
-docker compose -f docker-compose.dev.yml up -d
-
-# Check status
-docker ps
-```
-
-### 5. Set up the database
-```bash
-npx prisma generate
-npx prisma migrate dev
-npx prisma db seed
-```
-
-### 6. Run the development server
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
-## 📁 Project Structure
-
-```
-app/                    # Next.js app directory
-├── api/               # API routes
-├── booking/           # Booking flow pages
-├── booking-enhanced/  # Enhanced booking with real-time features
-├── admin/             # Admin dashboard
-└── components/        # Shared components
-
-components/            # React components
-├── booking/          # Booking-specific components
-├── ui/               # Reusable UI components
-└── shared/           # Shared components
-
-lib/                   # Core functionality
-├── services/         # Business logic and API clients
-├── utils/            # Utility functions
-└── validations/      # Schema validations
-
-netlify/              # Netlify functions
-├── functions/        # Serverless functions
-└── edge-functions/   # Edge functions
-
-prisma/               # Database
-├── schema.prisma     # Database schema
-├── migrations/       # Database migrations
-└── seed.ts          # Seed data
-
-tests/                # Test files
-├── unit/            # Unit tests
-├── integration/     # Integration tests
-└── e2e/             # End-to-end tests
-```
-
-## 🧪 Testing
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Unit tests
-npm run test
-
-# Integration tests
-npm run test:integration
-
-# E2E tests (requires running app)
-npm run test:e2e
-
-# All tests with coverage
-npm run test:all
-
-# Watch mode for development
-npm run test:watch
+npm i supabase --save-dev
 ```
 
-## 📦 Build & Deployment
-
-### Local Build
-```bash
-# Production build
-npm run build
-
-# Analyze bundle size
-npm run analyze
-```
-
-### Deployment to Netlify
-```bash
-# Deploy to production
-npm run deploy:production
-
-# Deploy to staging
-npm run deploy:staging
-```
-
-The application is configured for automatic deployment via GitHub integration:
-- Push to `main` branch → Production deployment
-- Push to `develop` branch → Staging deployment
-
-## 🔧 Development Commands
+To install the beta release channel:
 
 ```bash
-# Database
-npx prisma studio      # Visual database editor
-npx prisma migrate dev # Run migrations
-npx prisma db push     # Quick schema sync
-
-# Code Quality
-npm run lint           # ESLint
-npm run typecheck      # TypeScript checking
-npm run format         # Prettier formatting
-
-# Docker Services
-docker compose -f docker-compose.dev.yml up -d    # Start
-docker compose -f docker-compose.dev.yml down     # Stop
-docker compose -f docker-compose.dev.yml logs -f  # Logs
+npm i supabase@beta --save-dev
 ```
 
-## 📚 Documentation
+> **Note**
+For Bun users, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Complete deployment instructions
-- [Production Runbook](docs/PRODUCTION_RUNBOOK.md) - Operations and troubleshooting
-- [Testing Guide](docs/TESTING_GUIDE.md) - Testing strategies and instructions
-- [API Documentation](docs/API_DOCUMENTATION.md) - API endpoints and usage
+<details>
+  <summary><b>macOS</b></summary>
 
-## 🔒 Security
+  Available via [Homebrew](https://brew.sh). To install:
 
-- All API endpoints are protected with authentication
-- Rate limiting implemented on all public endpoints
-- CORS configured for production domains only
-- Security headers implemented via Netlify configuration
-- Input validation and sanitization on all endpoints
-- Regular dependency updates and security audits
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-## 🌍 Environment Variables
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-Key environment variables (see `.env.example` for full list):
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
 
 ```bash
-# Database
-DATABASE_URL=
-DIRECT_URL=
-
-# Redis
-REDIS_URL=
-
-# Authentication
-JWT_SECRET_KEY=
-ENCRYPTION_KEY=
-
-# Google APIs
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
-GOOGLE_CALENDAR_CREDENTIALS=
-
-# GoHighLevel
-GOHIGHLEVEL_API_KEY=
-GOHIGHLEVEL_WEBHOOK_SECRET=
-
-# Monitoring
-SENTRY_DSN=
-DD_API_KEY=
+supabase help
 ```
 
-## 🚀 Production URL
+Or using npx:
 
-- **Production**: https://afspraken.staycoolairco.nl
-- **Health Check**: https://afspraken.staycoolairco.nl/api/health
+```bash
+npx supabase help
+```
 
-## 🤝 Contributing
+## Docs
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
-## 📄 License
+## Breaking changes
 
-This project is proprietary software for StayCool Airco. All rights reserved.
+The CLI is a WIP and we're still exploring the design, so expect a lot of breaking changes. We try to document migration steps in [Releases](https://github.com/supabase/cli/releases). Please file an issue if these steps don't work!
 
-## 👥 Contact
+## Developing
 
-- **Business**: info@staycoolairco.nl
-- **Technical Issues**: Create an issue in this repository
+To run from source:
 
----
+```sh
+# Go >= 1.20
+go run . help
+```
 
-Built with ❤️ for StayCool Airco
