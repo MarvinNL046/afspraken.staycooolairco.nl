@@ -96,7 +96,7 @@
     sentryOrg = "staycool-airco"
     sentryProject = "web-app"
     sentryAuthToken = "SENTRY_AUTH_TOKEN"
-    urlPrefix = "~/"
+    sourceMapUrlPrefix = "~/"
     
 # Security Headers - Production Hardened
 [[headers]]
