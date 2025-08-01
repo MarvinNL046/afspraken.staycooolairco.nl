@@ -3,7 +3,7 @@
 # Last Updated: 2025-08-01
 
 [build]
-  command = "npx prisma generate && npm run build"
+  command = "node scripts/setup-google-creds.js && npx prisma generate && npm run build"
   functions = "netlify/functions"
   publish = ".next"
 
@@ -215,7 +215,7 @@
 
 # Production context
 [context.production]
-  command = "npx prisma generate && npm run build"
+  command = "node scripts/setup-google-creds.js && npx prisma generate && npm run build"
   
   [context.production.environment]
     NEXT_PUBLIC_ENV = "production"

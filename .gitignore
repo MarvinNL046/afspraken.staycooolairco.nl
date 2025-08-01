@@ -90,3 +90,4 @@ supabase-setup.sql
 **/google-calendar-key.json.backup
 DEPLOYMENT_*.md
 **/supabase_info.md
+.google-calendar-credentials.json

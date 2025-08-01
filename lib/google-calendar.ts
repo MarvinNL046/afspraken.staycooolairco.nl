@@ -1,6 +1,8 @@
 import { google } from 'googleapis'
 import { GoogleAuth } from 'google-auth-library'
 import type { AfspraakWithLead, ServiceType } from './types'
+import * as fs from 'fs'
+import * as path from 'path'
 
 // Cache the auth instance
 let cachedAuth: GoogleAuth | null = null
@@ -10,16 +12,30 @@ export function getGoogleAuth(): GoogleAuth {
     return cachedAuth
   }
 
-  const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-  if (!serviceAccountKey) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY environment variable is not set')
-  }
-
   let credentials
-  try {
-    credentials = JSON.parse(serviceAccountKey)
-  } catch (error) {
-    throw new Error('Invalid GOOGLE_SERVICE_ACCOUNT_KEY: Must be valid JSON')
+  
+  // First try to load from file (created during build)
+  const credsFilePath = path.join(process.cwd(), '.google-calendar-credentials.json')
+  if (fs.existsSync(credsFilePath)) {
+    try {
+      credentials = JSON.parse(fs.readFileSync(credsFilePath, 'utf-8'))
+    } catch (error) {
+      console.error('Failed to read credentials file:', error)
+    }
+  }
+  
+  // Fallback to environment variables
+  if (!credentials) {
+    const serviceAccountKey = process.env.GOOGLE_CALENDAR_CREDENTIALS || process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+    if (!serviceAccountKey) {
+      throw new Error('Google Calendar credentials not found. Set GOOGLE_CALENDAR_CREDENTIALS environment variable.')
+    }
+
+    try {
+      credentials = JSON.parse(serviceAccountKey)
+    } catch (error) {
+      throw new Error('Invalid Google Calendar credentials: Must be valid JSON')
+    }
   }
 
   cachedAuth = new GoogleAuth({
