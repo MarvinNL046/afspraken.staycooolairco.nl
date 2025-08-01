@@ -83,13 +83,14 @@
     "autoprefixer": "^10.4.20",
     "@types/jest": "^30.0.0",
     "jest": "^30.0.5",
-    "ts-jest": "^29.4.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.54.2",
+    "ts-jest": "^29.4.0",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "jest-environment-jsdom": "^30.0.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.9",
     "@types/jsonwebtoken": "^9.0.10",
@@ -99,7 +100,6 @@
     "@types/react-dom": "^19",
     "@types/supertest": "^6.0.3",
     "identity-obj-proxy": "^3.0.0",
-    "jest-environment-jsdom": "^30.0.5",
     "jest-junit": "^16.0.0",
     "jest-mock-extended": "^4.0.0",
     "jest-watch-typeahead": "^3.0.1",
