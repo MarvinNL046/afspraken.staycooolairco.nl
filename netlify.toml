@@ -3,7 +3,7 @@
 # Last Updated: 2025-08-01
 
 [build]
-  command = "npm run build:production"
+  command = "npm run build"
   functions = "netlify/functions"
   publish = ".next"
 
@@ -41,62 +41,18 @@
 [build.processing.images]
   compress = true
 
-# Edge Functions configuration
-[[edge_functions]]
-  function = "geolocation"
-  path = "/api/geo"
-
-[[edge_functions]]
-  function = "auth-check"
-  path = "/api/*"
+# Edge Functions configuration (disabled for now)
+# [[edge_functions]]
+#   function = "geolocation"
+#   path = "/api/geo"
+#
+# [[edge_functions]]
+#   function = "auth-check"
+#   path = "/api/*"
 
 # Production plugins
 [[plugins]]
-  package = "@netlify/plugin-lighthouse"
-  
-  [plugins.inputs]
-    # Performance thresholds for production
-    [plugins.inputs.thresholds]
-      performance = 0.9
-      accessibility = 0.95
-      best-practices = 0.9
-      seo = 0.9
-      pwa = 0.9
-    
-    # Audit configuration
-    audit_url = "https://staycoolairco.nl"
-    output_path = "reports/lighthouse.html"
-    
-[[plugins]]
-  package = "@netlify/plugin-sitemap"
-  
-  [plugins.inputs]
-    buildDir = ".next"
-    exclude = [
-      "/api/**",
-      "/admin/**",
-      "/_next/**",
-      "/404",
-      "/500"
-    ]
-
-[[plugins]]
-  package = "netlify-plugin-cache-nextjs"
-  
-  [plugins.inputs]
-    # Cache build artifacts
-    cache_build_js = true
-    cache_node_modules = true
-    cache_next_cache = true
-
-[[plugins]]
-  package = "@sentry/netlify-build-plugin"
-  
-  [plugins.inputs]
-    sentryOrg = "staycool-airco"
-    sentryProject = "web-app"
-    sentryAuthToken = "SENTRY_AUTH_TOKEN"
-    sourceMapUrlPrefix = "~/"
+  package = "@netlify/plugin-nextjs"
     
 # Security Headers - Production Hardened
 [[headers]]
@@ -223,22 +179,6 @@
   [functions."*"]
     node_bundler = "esbuild"
     external_node_modules = ["@prisma/client", "bcryptjs"]
-    
-  # Scheduled functions
-  [functions."health-check"]
-    schedule = "*/5 * * * *"  # Every 5 minutes
-    
-  [functions."cleanup-expired-tokens"]
-    schedule = "0 */6 * * *"  # Every 6 hours
-    
-  [functions."sync-appointments"]
-    schedule = "0 * * * *"  # Every hour
-    
-  [functions."backup-database"]
-    schedule = "0 3 * * *"  # Daily at 3 AM
-    
-  [functions."generate-reports"]
-    schedule = "0 6 * * 1"  # Weekly on Monday at 6 AM
 
 # Development context
 [context.deploy-preview]
@@ -260,7 +200,7 @@
 
 # Production context
 [context.production]
-  command = "npm run build:production"
+  command = "npm run build"
   
   [context.production.environment]
     NEXT_PUBLIC_ENV = "production"
