@@ -68,7 +68,6 @@
       "/500"
     ]
     prettyURLs = true
-    failPlugin = false
     
 # Security Headers - Production Hardened
 [[headers]]

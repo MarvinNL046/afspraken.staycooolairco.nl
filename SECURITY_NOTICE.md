@@ -6,11 +6,10 @@ GitGuardian has detected exposed credentials in this repository. The following a
 
 ### 🔴 IMMEDIATE ACTIONS:
 
-1. **Google Maps API Key** (AIzaSyDYx9_2AvXXQ2r_Ir5hxm0JZFNGgVDV7Oo)
-   - Go to https://console.cloud.google.com/
-   - Navigate to APIs & Services > Credentials
-   - DELETE this key immediately
-   - Create a NEW key with restrictions:
+1. **Google Maps API Key** (OLD KEY REVOKED - ✅ REPLACED)
+   - ✅ Old key has been revoked
+   - ✅ New key has been created and added to Netlify
+   - ⚠️ IMPORTANT: Set restrictions on the new key:
      - HTTP referrers: https://afspraken.staycoolairco.nl/*
      - API restrictions: Maps JavaScript API, Geocoding API, Places API only
 
