@@ -1,0 +1,190 @@
+# Alert Configuration for StayCool Airco
+# This file defines monitoring alerts and thresholds
+
+alerts:
+  # Application Health
+  - name: "Site Down"
+    type: "availability"
+    target: "https://staycoolairco.nl"
+    condition:
+      status_code: "!= 200"
+      consecutive_failures: 3
+    severity: "critical"
+    notify:
+      - email: "ops@staycoolairco.nl"
+      - sms: "+31612345678"
+      - slack: "#alerts-critical"
+    
+  - name: "Health Check Failed"
+    type: "endpoint"
+    target: "https://staycoolairco.nl/api/health"
+    condition:
+      status: "!= healthy"
+      duration: "5m"
+    severity: "high"
+    notify:
+      - email: "ops@staycoolairco.nl"
+      - slack: "#alerts"
+  
+  # Performance Alerts
+  - name: "High Response Time"
+    type: "performance"
+    metric: "response_time"
+    condition:
+      threshold: "> 3000ms"
+      duration: "5m"
+    severity: "medium"
+    notify:
+      - slack: "#performance"
+  
+  - name: "High Error Rate"
+    type: "error_rate"
+    condition:
+      threshold: "> 5%"
+      duration: "10m"
+    severity: "high"
+    notify:
+      - email: "ops@staycoolairco.nl"
+      - slack: "#alerts"
+  
+  # Resource Alerts
+  - name: "High Memory Usage"
+    type: "resource"
+    metric: "memory_usage"
+    condition:
+      threshold: "> 90%"
+      duration: "15m"
+    severity: "medium"
+    notify:
+      - slack: "#infrastructure"
+  
+  - name: "Database Connection Pool Exhausted"
+    type: "database"
+    metric: "connection_pool_available"
+    condition:
+      threshold: "< 2"
+      duration: "5m"
+    severity: "high"
+    notify:
+      - email: "ops@staycoolairco.nl"
+      - slack: "#database"
+  
+  # Business Metrics
+  - name: "No Appointments Created"
+    type: "business"
+    metric: "appointments_created_hourly"
+    condition:
+      threshold: "== 0"
+      duration: "2h"
+      time_window: "business_hours"
+    severity: "medium"
+    notify:
+      - email: "business@staycoolairco.nl"
+      - slack: "#business-alerts"
+  
+  - name: "High Cancellation Rate"
+    type: "business"
+    metric: "cancellation_rate_daily"
+    condition:
+      threshold: "> 20%"
+      duration: "1d"
+    severity: "medium"
+    notify:
+      - email: "business@staycoolairco.nl"
+  
+  # Security Alerts
+  - name: "Multiple Failed Logins"
+    type: "security"
+    metric: "failed_login_attempts"
+    condition:
+      threshold: "> 10"
+      duration: "5m"
+      group_by: "ip_address"
+    severity: "high"
+    notify:
+      - email: "security@staycoolairco.nl"
+      - slack: "#security"
+  
+  - name: "Suspicious API Activity"
+    type: "security"
+    metric: "api_requests_per_ip"
+    condition:
+      threshold: "> 1000"
+      duration: "5m"
+    severity: "critical"
+    notify:
+      - email: "security@staycoolairco.nl"
+      - sms: "+31612345678"
+  
+  # Infrastructure Alerts
+  - name: "SSL Certificate Expiring"
+    type: "certificate"
+    target: "staycoolairco.nl"
+    condition:
+      days_until_expiry: "< 30"
+    severity: "medium"
+    notify:
+      - email: "ops@staycoolairco.nl"
+  
+  - name: "Function Cold Start High"
+    type: "function"
+    metric: "cold_start_duration"
+    condition:
+      threshold: "> 3000ms"
+      percentile: "p95"
+    severity: "low"
+    notify:
+      - slack: "#performance"
+
+# Notification Channels
+channels:
+  email:
+    provider: "sendgrid"
+    from: "alerts@staycoolairco.nl"
+    
+  sms:
+    provider: "twilio"
+    from: "+31612345678"
+    
+  slack:
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    default_channel: "#alerts"
+    
+# Alert Schedules
+schedules:
+  business_hours:
+    timezone: "Europe/Amsterdam"
+    days: ["mon", "tue", "wed", "thu", "fri"]
+    hours:
+      start: "08:00"
+      end: "18:00"
+      
+  after_hours:
+    timezone: "Europe/Amsterdam"
+    inverse_of: "business_hours"
+    
+# Escalation Policy
+escalation:
+  - level: 1
+    delay: "0m"
+    notify: ["email", "slack"]
+    
+  - level: 2
+    delay: "15m"
+    notify: ["sms"]
+    
+  - level: 3
+    delay: "30m"
+    notify: ["phone"]
+    
+# Maintenance Windows
+maintenance_windows:
+  - name: "Weekly Maintenance"
+    schedule: "0 3 * * SUN"
+    duration: "2h"
+    suppress_alerts: ["low", "medium"]
+    
+  - name: "Monthly Updates"
+    schedule: "0 2 1 * *"
+    duration: "4h"
+    suppress_alerts: ["all"]

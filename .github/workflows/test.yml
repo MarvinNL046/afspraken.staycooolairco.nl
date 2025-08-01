@@ -1,0 +1,282 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '22.16.0'
+  DATABASE_URL: postgresql://test:test@localhost:5432/staycool_test
+  REDIS_URL: redis://localhost:6379/1
+  JWT_SECRET: test-jwt-secret
+  ENCRYPTION_KEY: test-encryption-key-32-chars-long
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: test-google-maps-key
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: app-code/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./app-code
+      run: npm ci
+    
+    - name: Run unit tests
+      working-directory: ./app-code
+      run: npm run test:unit -- --coverage
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./app-code/coverage/lcov.info
+        flags: unit
+        name: unit-coverage
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: unit-test-results
+        path: app-code/coverage/
+        retention-days: 7
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: staycool_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: app-code/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./app-code
+      run: npm ci
+    
+    - name: Setup database
+      working-directory: ./app-code
+      run: |
+        npx prisma generate
+        npx prisma migrate deploy
+    
+    - name: Run integration tests
+      working-directory: ./app-code
+      run: npm run test:integration -- --coverage
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./app-code/coverage/integration/lcov.info
+        flags: integration
+        name: integration-coverage
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: integration-test-results
+        path: app-code/coverage/integration/
+        retention-days: 7
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: staycool_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: app-code/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./app-code
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      working-directory: ./app-code
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+    
+    - name: Setup database
+      working-directory: ./app-code
+      run: |
+        npx prisma generate
+        npx prisma migrate deploy
+        npx prisma db seed
+    
+    - name: Build application
+      working-directory: ./app-code
+      run: npm run build
+    
+    - name: Run E2E tests
+      working-directory: ./app-code
+      run: npx playwright test --project=${{ matrix.browser }}
+    
+    - name: Upload test report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-${{ matrix.browser }}
+        path: app-code/playwright-report/
+        retention-days: 7
+    
+    - name: Upload test videos
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-videos-${{ matrix.browser }}
+        path: app-code/test-results/
+        retention-days: 7
+
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: staycool_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: app-code/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./app-code
+      run: |
+        npm ci
+        npm install -D @axe-core/playwright
+    
+    - name: Install Playwright
+      working-directory: ./app-code
+      run: npx playwright install chromium
+    
+    - name: Setup database
+      working-directory: ./app-code
+      run: |
+        npx prisma generate
+        npx prisma migrate deploy
+    
+    - name: Build application
+      working-directory: ./app-code
+      run: npm run build
+    
+    - name: Run accessibility tests
+      working-directory: ./app-code
+      run: npx playwright test --project=accessibility
+    
+    - name: Upload accessibility report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: accessibility-report
+        path: app-code/playwright-report/
+        retention-days: 7
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, accessibility-tests]
+    if: always()
+    
+    steps:
+    - name: Check test results
+      run: |
+        if [ "${{ needs.unit-tests.result }}" != "success" ] || 
+           [ "${{ needs.integration-tests.result }}" != "success" ] || 
+           [ "${{ needs.e2e-tests.result }}" != "success" ] || 
+           [ "${{ needs.accessibility-tests.result }}" != "success" ]; then
+          echo "One or more test suites failed"
+          exit 1
+        fi
+        echo "All tests passed successfully!"

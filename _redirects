@@ -1,0 +1,26 @@
+# Domain redirects for production
+# Redirect www to non-www with SSL
+https://www.staycoolairco.nl/* https://staycoolairco.nl/:splat 301!
+
+# Force HTTPS
+http://staycoolairco.nl/* https://staycoolairco.nl/:splat 301!
+http://www.staycoolairco.nl/* https://staycoolairco.nl/:splat 301!
+
+# API routes to serverless functions
+/api/* /.netlify/functions/:splat 200
+
+# Service worker
+/sw.js /sw.js 200! Cache-Control: no-cache
+
+# Sitemap
+/sitemap.xml /sitemap.xml 200
+
+# Robots.txt
+/robots.txt /robots.txt 200
+
+# Legacy URLs (if any)
+/oude-pagina /nieuwe-pagina 301
+/contact.html /contact 301
+
+# 404 fallback for SPA
+/* /index.html 200

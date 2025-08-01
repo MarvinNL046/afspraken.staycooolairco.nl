@@ -1,0 +1,315 @@
+/**
+ * Mock data fixtures for testing
+ */
+
+export const mockUsers = {
+  validUser: {
+    id: 'user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    phone: '0612345678',
+    role: 'USER',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  adminUser: {
+    id: 'admin-456',
+    email: 'admin@staycoolairco.nl',
+    name: 'Admin User',
+    phone: '0687654321',
+    role: 'ADMIN',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  technicianUser: {
+    id: 'tech-789',
+    email: 'tech@staycoolairco.nl',
+    name: 'Technician User',
+    phone: '0611223344',
+    role: 'TECHNICIAN',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+};
+
+export const mockAppointments = {
+  scheduled: {
+    id: 'apt-001',
+    userId: mockUsers.validUser.id,
+    serviceType: 'AC_INSTALLATION',
+    scheduledDate: new Date('2024-01-20T10:00:00Z'),
+    scheduledEndDate: new Date('2024-01-20T12:00:00Z'),
+    address: 'Damrak 70',
+    city: 'Amsterdam',
+    postalCode: '1012LM',
+    lat: 52.3738,
+    lng: 4.8910,
+    status: 'SCHEDULED',
+    notes: 'Third floor apartment',
+    calendarEventId: 'cal-event-001',
+    createdAt: new Date('2024-01-10'),
+    updatedAt: new Date('2024-01-10'),
+  },
+  inProgress: {
+    id: 'apt-002',
+    userId: mockUsers.validUser.id,
+    technicianId: 'tech-001',
+    serviceType: 'AC_REPAIR',
+    scheduledDate: new Date('2024-01-15T14:00:00Z'),
+    scheduledEndDate: new Date('2024-01-15T15:30:00Z'),
+    address: 'Kalverstraat 152',
+    city: 'Amsterdam',
+    postalCode: '1012XE',
+    lat: 52.3690,
+    lng: 4.8925,
+    status: 'IN_PROGRESS',
+    notes: 'AC not cooling properly',
+    calendarEventId: 'cal-event-002',
+    createdAt: new Date('2024-01-08'),
+    updatedAt: new Date('2024-01-15'),
+  },
+  completed: {
+    id: 'apt-003',
+    userId: mockUsers.validUser.id,
+    technicianId: 'tech-001',
+    serviceType: 'AC_MAINTENANCE',
+    scheduledDate: new Date('2024-01-10T09:00:00Z'),
+    scheduledEndDate: new Date('2024-01-10T10:00:00Z'),
+    address: 'Nieuwezijds Voorburgwal 147',
+    city: 'Amsterdam',
+    postalCode: '1012RJ',
+    lat: 52.3776,
+    lng: 4.8901,
+    status: 'COMPLETED',
+    completedAt: new Date('2024-01-10T10:00:00Z'),
+    notes: 'Annual maintenance',
+    calendarEventId: 'cal-event-003',
+    createdAt: new Date('2024-01-05'),
+    updatedAt: new Date('2024-01-10'),
+  },
+  cancelled: {
+    id: 'apt-004',
+    userId: mockUsers.validUser.id,
+    serviceType: 'AC_INSTALLATION',
+    scheduledDate: new Date('2024-01-25T11:00:00Z'),
+    scheduledEndDate: new Date('2024-01-25T14:00:00Z'),
+    address: 'Herengracht 100',
+    city: 'Amsterdam',
+    postalCode: '1015BS',
+    lat: 52.3752,
+    lng: 4.8858,
+    status: 'CANCELLED',
+    cancelledAt: new Date('2024-01-12'),
+    cancellationReason: 'Customer moved to different address',
+    calendarEventId: 'cal-event-004',
+    createdAt: new Date('2024-01-08'),
+    updatedAt: new Date('2024-01-12'),
+  },
+};
+
+export const mockServiceAreas = {
+  amsterdam: {
+    id: 'area-001',
+    name: 'Amsterdam Centrum',
+    postalCode: '1012',
+    city: 'Amsterdam',
+    province: 'Noord-Holland',
+    isActive: true,
+    maxDistance: 10,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  rotterdam: {
+    id: 'area-002',
+    name: 'Rotterdam Centrum',
+    postalCode: '3011',
+    city: 'Rotterdam',
+    province: 'Zuid-Holland',
+    isActive: true,
+    maxDistance: 15,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  utrecht: {
+    id: 'area-003',
+    name: 'Utrecht Centrum',
+    postalCode: '3511',
+    city: 'Utrecht',
+    province: 'Utrecht',
+    isActive: true,
+    maxDistance: 12,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  inactive: {
+    id: 'area-004',
+    name: 'Groningen',
+    postalCode: '9711',
+    city: 'Groningen',
+    province: 'Groningen',
+    isActive: false,
+    maxDistance: 20,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+};
+
+export const mockTechnicians = {
+  available: {
+    id: 'tech-001',
+    name: 'Jan de Vries',
+    email: 'jan@staycoolairco.nl',
+    phone: '0611111111',
+    specializations: ['AC_INSTALLATION', 'AC_MAINTENANCE', 'AC_REPAIR'],
+    isActive: true,
+    workingHours: {
+      monday: { start: '08:00', end: '17:00' },
+      tuesday: { start: '08:00', end: '17:00' },
+      wednesday: { start: '08:00', end: '17:00' },
+      thursday: { start: '08:00', end: '17:00' },
+      friday: { start: '08:00', end: '17:00' },
+    },
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  specialist: {
+    id: 'tech-002',
+    name: 'Pieter Bakker',
+    email: 'pieter@staycoolairco.nl',
+    phone: '0622222222',
+    specializations: ['HEAT_PUMP_INSTALLATION', 'EMERGENCY_REPAIR'],
+    isActive: true,
+    workingHours: {
+      monday: { start: '08:00', end: '17:00' },
+      tuesday: { start: '08:00', end: '17:00' },
+      wednesday: { start: '08:00', end: '17:00' },
+      thursday: { start: '08:00', end: '17:00' },
+      friday: { start: '08:00', end: '17:00' },
+    },
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+  unavailable: {
+    id: 'tech-003',
+    name: 'Willem Jansen',
+    email: 'willem@staycoolairco.nl',
+    phone: '0633333333',
+    specializations: ['AC_INSTALLATION', 'AC_REPAIR'],
+    isActive: false,
+    workingHours: {},
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
+};
+
+export const mockGoogleMapsResponses = {
+  validAddress: {
+    formatted_address: 'Damrak 70, 1012 LM Amsterdam, Netherlands',
+    lat: 52.3738,
+    lng: 4.8910,
+    place_id: 'ChIJuVqoRkYJxkcRKXTGOcJ8LQY',
+    address_components: [
+      { long_name: '70', types: ['street_number'] },
+      { long_name: 'Damrak', types: ['route'] },
+      { long_name: 'Amsterdam', types: ['locality'] },
+      { long_name: 'Noord-Holland', types: ['administrative_area_level_1'] },
+      { long_name: 'Netherlands', types: ['country'] },
+      { long_name: '1012 LM', types: ['postal_code'] },
+    ],
+  },
+  invalidAddress: {
+    error: 'Address not found',
+    status: 'ZERO_RESULTS',
+  },
+  distanceMatrix: {
+    rows: [{
+      elements: [{
+        distance: { value: 5432, text: '5.4 km' },
+        duration: { value: 854, text: '14 mins' },
+        status: 'OK',
+      }],
+    }],
+    status: 'OK',
+  },
+  route: {
+    distance: 5432,
+    duration: 854,
+    polyline: 'encoded_polyline_string_here',
+    steps: [
+      { instruction: 'Head north on Damrak', distance: 200, duration: 60 },
+      { instruction: 'Turn right onto Nieuwendijk', distance: 500, duration: 120 },
+    ],
+  },
+};
+
+export const mockCalendarEvents = {
+  created: {
+    id: 'cal-event-new',
+    htmlLink: 'https://calendar.google.com/event?id=cal-event-new',
+    summary: 'AC Installation - Damrak 70',
+    description: 'Service: AC_INSTALLATION\nCustomer: Test User\nPhone: 0612345678',
+    location: 'Damrak 70, 1012 LM Amsterdam, Netherlands',
+    start: { dateTime: '2024-01-20T10:00:00+01:00' },
+    end: { dateTime: '2024-01-20T12:00:00+01:00' },
+    status: 'confirmed',
+  },
+  availableSlots: [
+    { start: '2024-01-20T09:00:00Z', end: '2024-01-20T10:00:00Z' },
+    { start: '2024-01-20T10:00:00Z', end: '2024-01-20T11:00:00Z' },
+    { start: '2024-01-20T11:00:00Z', end: '2024-01-20T12:00:00Z' },
+    { start: '2024-01-20T14:00:00Z', end: '2024-01-20T15:00:00Z' },
+    { start: '2024-01-20T15:00:00Z', end: '2024-01-20T16:00:00Z' },
+  ],
+  busySlots: [
+    { start: '2024-01-20T12:00:00Z', end: '2024-01-20T14:00:00Z' },
+    { start: '2024-01-20T16:00:00Z', end: '2024-01-20T17:00:00Z' },
+  ],
+};
+
+export const mockGoHighLevelResponses = {
+  contact: {
+    id: 'ghl-contact-123',
+    email: 'test@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    phone: '+31612345678',
+    tags: ['customer', 'ac-installation'],
+    customFields: {
+      appointmentId: 'apt-001',
+      serviceType: 'AC_INSTALLATION',
+    },
+  },
+  opportunity: {
+    id: 'ghl-opp-456',
+    name: 'AC Installation - Test User',
+    contactId: 'ghl-contact-123',
+    status: 'open',
+    pipelineStageId: 'stage-scheduled',
+    monetaryValue: 850,
+    customFields: {
+      appointmentId: 'apt-001',
+      scheduledDate: '2024-01-20T10:00:00Z',
+    },
+  },
+};
+
+export const mockWebhookPayloads = {
+  appointmentCreated: {
+    event: 'appointment.created',
+    data: mockAppointments.scheduled,
+    timestamp: new Date().toISOString(),
+  },
+  appointmentUpdated: {
+    event: 'appointment.updated',
+    data: {
+      ...mockAppointments.scheduled,
+      scheduledDate: new Date('2024-01-21T10:00:00Z'),
+    },
+    timestamp: new Date().toISOString(),
+  },
+  appointmentCancelled: {
+    event: 'appointment.cancelled',
+    data: mockAppointments.cancelled,
+    timestamp: new Date().toISOString(),
+  },
+};

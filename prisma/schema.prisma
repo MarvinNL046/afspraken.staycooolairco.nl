@@ -1,0 +1,333 @@
+// Prisma schema for StayCool Appointments
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum AfspraakStatus {
+  gepland
+  bevestigd
+  geannuleerd
+  afgerond
+  niet_verschenen
+}
+
+enum ServiceType {
+  installation
+  maintenance
+  repair
+  consultation
+  installatie
+  onderhoud
+  reparatie
+  consultatie
+}
+
+enum KlantType {
+  particulier
+  zakelijk
+}
+
+// Models
+model Lead {
+  id               String        @id @default(uuid())
+  naam             String
+  email            String        @unique
+  telefoon         String?
+  adres            String?
+  postcode         String?
+  stad             String?
+  provincie        String?       // Added for service area tracking
+  
+  // Source system tracking (generalized from ghlId)
+  bronSysteem      String        @map("bron_systeem") // "gohighlevel", "hubspot", etc.
+  bronId           String        @map("bron_id") // External system ID
+  ghlId            String?       @unique @map("ghl_id") // Keep for backward compatibility
+  ghlContactId     String?       @map("ghl_contact_id")
+  
+  klantType        KlantType     @default(particulier) @map("klant_type")
+  bedrijfsnaam     String?       @map("bedrijfsnaam")
+  notities         String?
+  
+  // Service area validation
+  isInServiceArea  Boolean?      @map("is_in_service_area")
+  
+  // Lead status tracking
+  status           String        @default("nieuw") // nieuw, gecontacteerd, gekwalificeerd, etc.
+  
+  // Webhook integration fields
+  tags             Json?         // Flexible tag storage
+  customFields     Json?         @map("custom_fields") // Flexible custom field storage
+  lastWebhookEventId String?     @map("last_webhook_event_id")
+  lastContactAt    DateTime?     @map("last_contact_at")
+  
+  // Geocoding fields
+  latitude         Float?        @map("latitude")
+  longitude        Float?        @map("longitude")
+  placeId          String?       @map("place_id")      // Google Place ID for permanent caching
+  geocodedAt       DateTime?     @map("geocoded_at")
+  geocodeAccuracy  String?       @map("geocode_accuracy") // ROOFTOP, RANGE_INTERPOLATED, etc.
+  
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  
+  afspraken        Afspraak[]
+  webhookEvents    WebhookEvent[]
+  
+  @@index([ghlId])
+  @@index([email])
+  @@index([postcode])
+  @@index([bronSysteem])
+  @@index([lastContactAt])
+  @@index([isInServiceArea])
+  @@unique([bronSysteem, bronId])
+  @@map("leads")
+}
+
+model Customer {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  firstName        String        @map("first_name")
+  lastName         String        @map("last_name")
+  phone            String
+  company          String?
+  customerType     KlantType     @default(particulier) @map("customer_type")
+  address          String
+  postalCode       String        @map("postal_code")
+  city             String
+  notes            String?
+  
+  // Geocoding fields
+  latitude         Float?        @map("latitude")
+  longitude        Float?        @map("longitude")
+  placeId          String?       @map("place_id")      // Google Place ID for permanent caching
+  geocodedAt       DateTime?     @map("geocoded_at")
+  geocodeAccuracy  String?       @map("geocode_accuracy") // ROOFTOP, RANGE_INTERPOLATED, etc.
+  
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  
+  afspraken        Afspraak[]    @relation("CustomerAfspraken")
+  
+  @@index([postalCode])
+  @@map("customers")
+}
+
+model Afspraak {
+  id               String              @id @default(uuid())
+  leadId           String?             @map("lead_id")
+  customerId       String?             @map("customer_id") // Voor backward compatibility
+  datum            DateTime            @db.Date
+  tijd             String              // "09:00", "13:00", etc
+  duur             Int                 @default(120) // in minuten
+  locatie          String              // Adres waar afspraak plaatsvindt
+  serviceType      ServiceType         @map("service_type")
+  status           AfspraakStatus      @default(gepland)
+  beschrijving     String?
+  interneNotities  String?             @map("interne_notities")
+  googleEventId    String?             @unique @map("google_event_id")
+  colorId          String?             @map("color_id") // Google Calendar kleurcode
+  routeClusterId   String?             @map("route_cluster_id")
+  prioriteit       Int                 @default(0) // 0=normaal, 1=hoog, 2=urgent
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  
+  lead             Lead?               @relation(fields: [leadId], references: [id])
+  customer         Customer?           @relation("CustomerAfspraken", fields: [customerId], references: [id])
+  routeCluster     RouteCluster?       @relation(fields: [routeClusterId], references: [id])
+  
+  @@index([datum, status])
+  @@index([leadId])
+  @@index([customerId])
+  @@index([routeClusterId])
+  @@map("afspraken")
+}
+
+model TimeSlot {
+  id               String     @id @default(uuid())
+  date             DateTime   @db.Date
+  startTime        String     @map("start_time") // "09:00"
+  endTime          String     @map("end_time")   // "11:00"
+  isAvailable      Boolean    @default(true) @map("is_available")
+  maxAppointments  Int        @default(1) @map("max_appointments")
+  currentBookings  Int        @default(0) @map("current_bookings")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  
+  @@unique([date, startTime])
+  @@index([date, isAvailable])
+  @@map("time_slots")
+}
+
+model BlockedDate {
+  id          String    @id @default(uuid())
+  date        DateTime  @db.Date
+  reason      String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  @@unique([date])
+  @@map("blocked_dates")
+}
+
+model RouteCluster {
+  id                String      @id @default(uuid())
+  datum             DateTime    @db.Date
+  regio             String      // Naam of label van regio/postcodegebied
+  naam              String?     // Optionele naam voor cluster
+  notities          String?
+  
+  // Route optimization fields
+  optimizedOrder    Json?       @map("optimized_order")     // Array of appointment IDs in optimal order
+  totalDistance     Float?      @map("total_distance")      // Total distance in meters
+  totalDuration     Int?        @map("total_duration")      // Total duration in minutes
+  routePolyline     String?     @map("route_polyline")      // Encoded polyline for visualization
+  travelMode        String      @default("DRIVING") @map("travel_mode") // DRIVING, BICYCLING
+  optimizedAt       DateTime?   @map("optimized_at")
+  
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  afspraken         Afspraak[]
+  
+  @@index([datum])
+  @@index([regio])
+  @@map("route_clusters")
+}
+
+// Cache for geocoded addresses
+model GeocodedAddress {
+  id                String      @id @default(uuid())
+  
+  // Input address components
+  street            String
+  houseNumber       String      @map("house_number")
+  houseNumberExt    String?     @map("house_number_ext")  // Addition like 'A', 'bis'
+  postalCode        String      @map("postal_code")
+  city              String
+  country           String      @default("Netherlands")
+  
+  // Formatted address as used in API call
+  formattedAddress  String      @unique @map("formatted_address")
+  
+  // Geocoding results
+  latitude          Float
+  longitude         Float
+  placeId           String      @map("place_id")
+  accuracy          String      // ROOFTOP, RANGE_INTERPOLATED, GEOMETRIC_CENTER, APPROXIMATE
+  locationType      String      @map("location_type")
+  viewport          Json?       // Northeast and southwest bounds
+  
+  // Metadata
+  source            String      @default("google") // google, manual, osm
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  lastVerified      DateTime    @default(now()) @map("last_verified")
+  
+  @@index([postalCode])
+  @@index([formattedAddress])
+  @@map("geocoded_addresses")
+}
+
+// Service area boundaries for appointment scheduling
+model ServiceArea {
+  id               String      @id @default(uuid())
+  name             String      @unique // "Limburg", "Noord-Brabant", etc.
+  province         String      // Official province name
+  isActive         Boolean     @default(true) @map("is_active")
+  
+  // Google Calendar integration
+  calendarColorId  String?     @map("calendar_color_id") // "5" for yellow
+  salesPersonId    String?     @map("sales_person_id")
+  salesPersonName  String?     @map("sales_person_name")
+  
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  
+  postalCodeRanges PostalCodeRange[]
+  
+  @@index([isActive])
+  @@map("service_areas")
+}
+
+model PostalCodeRange {
+  id               String      @id @default(uuid())
+  serviceAreaId    String      @map("service_area_id")
+  startCode        String      @map("start_code") // "5800"
+  endCode          String      @map("end_code")   // "6999"
+  
+  // Optional: specific postal codes that are exceptions
+  excludedCodes    String[]    @map("excluded_codes") @default([])
+  
+  serviceArea      ServiceArea @relation(fields: [serviceAreaId], references: [id])
+  
+  @@index([startCode, endCode])
+  @@map("postal_code_ranges")
+}
+
+// For precise boundary checking (optional enhancement)
+model BoundaryPolygon {
+  id               String      @id @default(uuid())
+  serviceAreaId    String      @unique @map("service_area_id")
+  
+  // GeoJSON polygon data for precise boundary checking
+  polygon          Json        // GeoJSON format
+  simplifiedPolygon Json?      @map("simplified_polygon") // For faster checks
+  
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  
+  @@map("boundary_polygons")
+}
+
+// Cache validated addresses with their service area
+model ValidatedAddress {
+  id               String      @id @default(uuid())
+  
+  // Address components
+  postalCode       String      @map("postal_code")
+  city             String
+  province         String?
+  
+  // Validation results
+  serviceAreaId    String?     @map("service_area_id") // NULL if outside service areas
+  isInServiceArea  Boolean     @default(false) @map("is_in_service_area")
+  validatedAt      DateTime    @default(now()) @map("validated_at")
+  
+  // Cache expiry (addresses can change administrative boundaries)
+  expiresAt        DateTime    @map("expires_at")
+  
+  @@unique([postalCode, city])
+  @@index([postalCode])
+  @@index([serviceAreaId])
+  @@map("validated_addresses")
+}
+
+// Webhook event tracking for integration monitoring
+model WebhookEvent {
+  id                String      @id @default(uuid())
+  eventId           String      @unique @map("event_id") // Unique ID from webhook source
+  eventType         String      @map("event_type") // ContactCreate, OpportunityCreate, etc.
+  leadId            String?     @map("lead_id")
+  payload           Json        // Full webhook payload
+  processedAt       DateTime    @default(now()) @map("processed_at")
+  source            String      @default("unknown") // gohighlevel, hubspot, etc.
+  isProcessed       Boolean     @default(false) @map("is_processed")
+  errorMessage      String?     @map("error_message")
+  processingTimeMs  Int?        @map("processing_time_ms")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  
+  lead              Lead?       @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  
+  @@index([eventType])
+  @@index([source])
+  @@index([processedAt])
+  @@index([isProcessed])
+  @@index([leadId])
+  @@map("webhook_events")
+}

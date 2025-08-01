@@ -1,0 +1,288 @@
+# Production-Ready Netlify Configuration for StayCool Airco
+# Version: 2.0.0
+# Last Updated: 2025-08-01
+
+[build]
+  command = "npm run build:production"
+  functions = "netlify/functions"
+  publish = ".next"
+
+[build.environment]
+  # Node.js configuration
+  NODE_VERSION = "22.16.0"
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  
+  # Build optimization
+  NETLIFY_USE_YARN = "false"
+  NETLIFY_SKIP_INSTALL = "false"
+  GATSBY_CPU_COUNT = "2"
+  
+  # Next.js optimization
+  NEXT_PRIVATE_STANDALONE = "true"
+  NEXT_SHARP_PATH = "/opt/build/repo/node_modules/sharp"
+
+# Production build processing
+[build.processing]
+  skip_processing = false
+  
+[build.processing.css]
+  bundle = true
+  minify = true
+  
+[build.processing.js]
+  bundle = true
+  minify = true
+  
+[build.processing.html]
+  pretty_urls = true
+  minify = true
+  
+[build.processing.images]
+  compress = true
+
+# Edge Functions configuration
+[[edge_functions]]
+  function = "geolocation"
+  path = "/api/geo"
+
+[[edge_functions]]
+  function = "auth-check"
+  path = "/api/*"
+
+# Production plugins
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+  
+  [plugins.inputs]
+    # Performance thresholds for production
+    [plugins.inputs.thresholds]
+      performance = 0.9
+      accessibility = 0.95
+      best-practices = 0.9
+      seo = 0.9
+      pwa = 0.9
+    
+    # Audit configuration
+    audit_url = "https://staycoolairco.nl"
+    output_path = "reports/lighthouse.html"
+    
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+  
+  [plugins.inputs]
+    buildDir = ".next"
+    exclude = [
+      "/api/**",
+      "/admin/**",
+      "/_next/**",
+      "/404",
+      "/500"
+    ]
+
+[[plugins]]
+  package = "netlify-plugin-cache-nextjs"
+  
+  [plugins.inputs]
+    # Cache build artifacts
+    cache_build_js = true
+    cache_node_modules = true
+    cache_next_cache = true
+
+[[plugins]]
+  package = "@sentry/netlify-build-plugin"
+  
+  [plugins.inputs]
+    sentryOrg = "staycool-airco"
+    sentryProject = "web-app"
+    sentryAuthToken = "SENTRY_AUTH_TOKEN"
+    urlPrefix = "~/"
+    
+# Security Headers - Production Hardened
+[[headers]]
+  for = "/*"
+  
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = '''
+      accelerometer=(),
+      camera=(),
+      geolocation=(self),
+      gyroscope=(),
+      magnetometer=(),
+      microphone=(),
+      payment=(),
+      usb=()
+    '''
+    
+    # Strict Content Security Policy
+    Content-Security-Policy = '''
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://www.googletagmanager.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https: blob:;
+      font-src 'self' data: https://fonts.gstatic.com;
+      connect-src 'self' https://maps.googleapis.com https://api.gohighlevel.com https://*.supabase.co wss://*.supabase.co https://o4506684934782976.ingest.sentry.io;
+      frame-src 'none';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-ancestors 'none';
+      upgrade-insecure-requests;
+    '''
+    
+    # Additional security headers
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Permitted-Cross-Domain-Policies = "none"
+    X-Download-Options = "noopen"
+    X-DNS-Prefetch-Control = "on"
+    
+    # Cache control for security
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# Static asset headers with caching
+[[headers]]
+  for = "/_next/static/*"
+  
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/images/*"
+  
+  [headers.values]
+    Cache-Control = "public, max-age=86400, s-maxage=86400"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/fonts/*"
+  
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    X-Content-Type-Options = "nosniff"
+
+# API security headers
+[[headers]]
+  for = "/api/*"
+  
+  [headers.values]
+    Cache-Control = "no-store, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+    X-API-Version = "1.0"
+
+# Redirects for production
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "http://staycoolairco.nl/*"
+  to = "https://staycoolairco.nl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.staycoolairco.nl/*"
+  to = "https://staycoolairco.nl/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.staycoolairco.nl/*"
+  to = "https://staycoolairco.nl/:splat"
+  status = 301
+  force = true
+
+# Rate limiting configuration
+[[redirects]]
+  from = "/api/*"
+  to = "/api/:splat"
+  status = 200
+  conditions = {Role = ["admin", "user"]}
+  force = true
+  
+  [redirects.headers]
+    X-Rate-Limit = "100"
+    X-Rate-Limit-Window = "60"
+
+# Function configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  
+  # Global function settings
+  [functions."*"]
+    node_bundler = "esbuild"
+    external_node_modules = ["@prisma/client", "bcryptjs"]
+    
+  # Scheduled functions
+  [functions."health-check"]
+    schedule = "*/5 * * * *"  # Every 5 minutes
+    
+  [functions."cleanup-expired-tokens"]
+    schedule = "0 */6 * * *"  # Every 6 hours
+    
+  [functions."sync-appointments"]
+    schedule = "0 * * * *"  # Every hour
+    
+  [functions."backup-database"]
+    schedule = "0 3 * * *"  # Daily at 3 AM
+    
+  [functions."generate-reports"]
+    schedule = "0 6 * * 1"  # Weekly on Monday at 6 AM
+
+# Development context
+[context.deploy-preview]
+  command = "npm run build:preview"
+  
+  [context.deploy-preview.environment]
+    NEXT_PUBLIC_ENV = "preview"
+    ENABLE_DEBUG_MODE = "true"
+    ROBOTS_DISABLE = "true"
+
+# Staging context
+[context.staging]
+  command = "npm run build:staging"
+  
+  [context.staging.environment]
+    NEXT_PUBLIC_ENV = "staging"
+    ENABLE_DEBUG_MODE = "false"
+    ROBOTS_DISABLE = "true"
+
+# Production context
+[context.production]
+  command = "npm run build:production"
+  
+  [context.production.environment]
+    NEXT_PUBLIC_ENV = "production"
+    ENABLE_DEBUG_MODE = "false"
+    ROBOTS_DISABLE = "false"
+    
+    # Performance optimizations
+    NODE_OPTIONS = "--max-old-space-size=4096"
+    NEXT_PRIVATE_TARGET = "server"
+
+# Branch deploy settings
+[context.branch-deploy]
+  command = "npm run build:branch"
+  
+[context.branch-deploy.environment]
+  NEXT_PUBLIC_ENV = "development"
+  ENABLE_DEBUG_MODE = "true"
+
+# Dev tools (disabled in production)
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 3000
+  framework = "next"
+  autoLaunch = false

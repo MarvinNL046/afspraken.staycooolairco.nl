@@ -39,3 +39,44 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Google credentials
+google-calendar-key.json
+*-gserviceaccount.json
+
+# Local Netlify folder
+.netlify
+
+# Test results
+/test-results/
+/playwright-report/
+/playwright/.cache/
+junit.xml
+test-report.html
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+
+# Sitemaps (generated)
+public/sitemap*.xml
+public/robots.txt
+
+# Compressed files
+*.gz
+
+# Database
+*.sqlite
+*.sqlite3
+
+# Redis dump
+dump.rdb

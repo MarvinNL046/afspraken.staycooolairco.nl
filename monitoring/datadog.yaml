@@ -1,0 +1,203 @@
+# Datadog Configuration for StayCool Airco
+# APM, Logging, and Metrics Configuration
+
+# API Configuration
+api_key: ${DD_API_KEY}
+app_key: ${DD_APP_KEY}
+site: datadoghq.eu
+
+# Application Performance Monitoring
+apm_config:
+  enabled: true
+  env: ${NEXT_PUBLIC_ENV}
+  service_name: staycool-web
+  analytics_enabled: true
+  
+  # Sampling
+  analytics_sample_rate: 1.0
+  traces_sample_rate: 0.1  # Sample 10% in production
+  
+  # Service mapping
+  service_mapping:
+    - original_service: netlify-functions
+      new_service: staycool-api
+    - original_service: prisma
+      new_service: staycool-db
+
+# Logs Configuration
+logs_config:
+  enabled: true
+  
+  # Log collection
+  logs:
+    - type: file
+      path: /var/log/netlify/*.log
+      service: staycool-web
+      source: netlify
+      
+    - type: tcp
+      port: 10514
+      service: staycool-api
+      source: nodejs
+
+  # Log processing
+  processing_rules:
+    - type: exclude_at_match
+      name: exclude_health_checks
+      pattern: "GET /api/health"
+      
+    - type: mask_sequences
+      name: mask_sensitive_data
+      replace_placeholder: "[REDACTED]"
+      pattern: "password|token|api_key|jwt"
+
+# Metrics Configuration
+dogstatsd_config:
+  enabled: true
+  dogstatsd_port: 8125
+  
+  # Custom metrics
+  histogram_aggregates: ["max", "median", "avg", "count", "p95"]
+  histogram_percentiles: ["0.95", "0.99"]
+
+# Tags
+tags:
+  - env:${NEXT_PUBLIC_ENV}
+  - service:staycool-web
+  - version:${npm_package_version}
+  - region:eu-west
+  - team:engineering
+
+# Integrations
+integrations:
+  # Netlify Integration
+  netlify:
+    accounts:
+      - api_key: ${NETLIFY_AUTH_TOKEN}
+        site_id: ${NETLIFY_SITE_ID}
+        
+  # PostgreSQL Integration
+  postgres:
+    instances:
+      - host: ${DB_HOST}
+        port: 5432
+        username: datadog
+        password: ${DD_POSTGRES_PASSWORD}
+        dbname: staycool_production
+        ssl: true
+        tags:
+          - env:production
+          
+  # Redis Integration
+  redis:
+    instances:
+      - host: ${REDIS_HOST}
+        port: 6379
+        password: ${REDIS_PASSWORD}
+        
+  # Google Cloud Integration
+  google_cloud_platform:
+    project_id: ${GOOGLE_CLOUD_PROJECT}
+    private_key_id: ${GCP_PRIVATE_KEY_ID}
+    private_key: ${GCP_PRIVATE_KEY}
+
+# Monitors
+monitors:
+  - name: "API Response Time"
+    type: metric alert
+    query: "avg(last_5m):avg:trace.express.request.duration{service:staycool-api} > 1000"
+    message: "API response time is above 1 second @slack-alerts"
+    thresholds:
+      critical: 1000
+      warning: 500
+      
+  - name: "Error Rate"
+    type: metric alert
+    query: "sum(last_5m):sum:trace.express.request.errors{service:staycool-api}.as_rate() > 0.05"
+    message: "Error rate is above 5% @pagerduty"
+    thresholds:
+      critical: 0.05
+      warning: 0.02
+      
+  - name: "Database Connection Pool"
+    type: metric alert
+    query: "avg(last_5m):avg:postgresql.connections.active{db:staycool_production} > 90"
+    message: "Database connection pool usage is high"
+    thresholds:
+      critical: 90
+      warning: 80
+
+# Dashboards
+dashboards:
+  - title: "StayCool Production Overview"
+    description: "Main production monitoring dashboard"
+    widgets:
+      - title: "Request Rate"
+        type: timeseries
+        requests:
+          - q: "sum:trace.express.request.hits{service:staycool-api}.as_rate()"
+            
+      - title: "Error Rate"
+        type: timeseries
+        requests:
+          - q: "sum:trace.express.request.errors{service:staycool-api}.as_rate()"
+            
+      - title: "Response Time"
+        type: timeseries
+        requests:
+          - q: "avg:trace.express.request.duration{service:staycool-api} by {resource_name}"
+            
+      - title: "Active Users"
+        type: query_value
+        requests:
+          - q: "sum:staycool.users.active{*}"
+            
+      - title: "Appointments Created"
+        type: timeseries
+        requests:
+          - q: "sum:staycool.appointments.created{*}.as_count()"
+
+# Synthetic Tests
+synthetics:
+  - name: "Homepage Load"
+    type: browser
+    url: "https://staycoolairco.nl"
+    locations: ["aws:eu-west-1", "aws:eu-central-1"]
+    options:
+      tick_every: 300
+      min_failure_duration: 5
+      min_location_failed: 1
+      
+  - name: "Booking Flow"
+    type: browser
+    script: |
+      // Navigate to booking
+      await page.goto('https://staycoolairco.nl/booking');
+      
+      // Select service
+      await page.click('[data-testid="service-AC_INSTALLATION"]');
+      await page.click('button:has-text("Next")');
+      
+      // Verify page loaded
+      await page.waitForSelector('[data-testid="address-form"]');
+    locations: ["aws:eu-west-1"]
+    options:
+      tick_every: 3600
+
+# Service Level Objectives
+slo:
+  - name: "API Availability"
+    description: "API should be available 99.9% of the time"
+    type: metric
+    sli:
+      query: "sum:synthetics.check_status{check_name:api-health,status:ok}.as_count()/sum:synthetics.check_status{check_name:api-health}.as_count()"
+    target: 99.9
+    timeframe: "30d"
+    
+  - name: "Response Time"
+    description: "95% of requests should complete within 1 second"
+    type: metric
+    sli:
+      query: "sum:trace.express.request.duration{service:staycool-api,percentile:p95} < 1000"
+    target: 95
+    timeframe: "7d"

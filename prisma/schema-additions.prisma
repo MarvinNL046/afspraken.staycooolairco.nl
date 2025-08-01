@@ -1,0 +1,74 @@
+// Additional schema for geographic boundaries - to be added to schema.prisma
+
+model ServiceArea {
+  id               String      @id @default(uuid())
+  name             String      @unique // "Limburg", "Noord-Brabant", etc.
+  province         String      // Official province name
+  isActive         Boolean     @default(true) @map("is_active")
+  
+  // Google Calendar integration
+  calendarColorId  String?     @map("calendar_color_id") // "5" for yellow
+  salesPersonId    String?     @map("sales_person_id")
+  salesPersonName  String?     @map("sales_person_name")
+  
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  
+  postalCodeRanges PostalCodeRange[]
+  
+  @@index([isActive])
+  @@map("service_areas")
+}
+
+model PostalCodeRange {
+  id               String      @id @default(uuid())
+  serviceAreaId    String      @map("service_area_id")
+  startCode        String      @map("start_code") // "5800"
+  endCode          String      @map("end_code")   // "6999"
+  
+  // Optional: specific postal codes that are exceptions
+  excludedCodes    String[]    @map("excluded_codes") @default([])
+  
+  serviceArea      ServiceArea @relation(fields: [serviceAreaId], references: [id])
+  
+  @@index([startCode, endCode])
+  @@map("postal_code_ranges")
+}
+
+// For precise boundary checking (optional enhancement)
+model BoundaryPolygon {
+  id               String      @id @default(uuid())
+  serviceAreaId    String      @unique @map("service_area_id")
+  
+  // GeoJSON polygon data for precise boundary checking
+  polygon          Json        // GeoJSON format
+  simplifiedPolygon Json?      @map("simplified_polygon") // For faster checks
+  
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  
+  @@map("boundary_polygons")
+}
+
+// Cache validated addresses with their service area
+model ValidatedAddress {
+  id               String      @id @default(uuid())
+  
+  // Address components
+  postalCode       String      @map("postal_code")
+  city             String
+  province         String?
+  
+  // Validation results
+  serviceAreaId    String?     @map("service_area_id") // NULL if outside service areas
+  isInServiceArea  Boolean     @default(false) @map("is_in_service_area")
+  validatedAt      DateTime    @default(now()) @map("validated_at")
+  
+  // Cache expiry (addresses can change administrative boundaries)
+  expiresAt        DateTime    @map("expires_at")
+  
+  @@unique([postalCode, city])
+  @@index([postalCode])
+  @@index([serviceAreaId])
+  @@map("validated_addresses")
+}
