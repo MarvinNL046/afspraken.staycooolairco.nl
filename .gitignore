@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.production
+.env.local
 
 # vercel
 .vercel
@@ -80,3 +82,11 @@ public/robots.txt
 
 # Redis dump
 dump.rdb
+
+# Sensitive files with credentials
+supabase-cli-setup.sh
+supabase-setup.sql
+/tmp/google-creds.json
+**/google-calendar-key.json.backup
+DEPLOYMENT_*.md
+**/supabase_info.md
