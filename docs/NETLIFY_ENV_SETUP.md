@@ -17,10 +17,10 @@ The following environment variables have been successfully configured via Netlif
 - ✅ `INTERNAL_API_KEY` = [Generated 64-char hex key]
 
 ### Google APIs
-- ✅ `GOOGLE_MAPS_API_KEY` = "[REDACTED_API_KEY]"
+- ✅ `GOOGLE_MAPS_API_KEY` = [Configured - API key stored securely in Netlify]
 - ✅ `GOOGLE_CALENDAR_ID` = "info@staycoolairco.nl"
-- ✅ `GOOGLE_SERVICE_ACCOUNT_EMAIL` = "[REDACTED_SERVICE_ACCOUNT]"
-- ✅ `GOOGLE_SERVICE_ACCOUNT_KEY` = [Base64 encoded service account JSON]
+- ✅ `GOOGLE_SERVICE_ACCOUNT_EMAIL` = [Configured - Service account email stored in Netlify]
+- ✅ `GOOGLE_SERVICE_ACCOUNT_KEY` = [Configured - Base64 encoded service account JSON stored in Netlify]
 
 ### Security Configuration
 - ✅ `CORS_ALLOWED_ORIGINS` = "https://afspraken.staycoolairco.nl,https://app.netlify.com"
