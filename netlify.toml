@@ -3,7 +3,7 @@
 # Last Updated: 2025-08-01
 
 [build]
-  command = "npm run build"
+  command = "npx prisma generate && npm run build"
   functions = "netlify/functions"
   publish = ".next"
 
@@ -53,6 +53,22 @@
 # Production plugins
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Sitemap generation for SEO
+[[plugins]]
+  package = "@netlify/plugin-sitemap"
+  
+  [plugins.inputs]
+    buildDir = ".next"
+    exclude = [
+      "/api/**",
+      "/admin/**",
+      "/_next/**",
+      "/404",
+      "/500"
+    ]
+    prettyURLs = true
+    failPlugin = false
     
 # Security Headers - Production Hardened
 [[headers]]
@@ -200,7 +216,7 @@
 
 # Production context
 [context.production]
-  command = "npm run build"
+  command = "npx prisma generate && npm run build"
   
   [context.production.environment]
     NEXT_PUBLIC_ENV = "production"
