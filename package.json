@@ -89,17 +89,17 @@
     "@testing-library/user-event": "^14.6.1",
     "jest-environment-jsdom": "^30.0.5",
     "jest-mock-extended": "^4.0.0",
-    "identity-obj-proxy": "^3.0.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.54.2",
+    "identity-obj-proxy": "^3.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.9",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react-dom": "^19"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@types/supertest": "^6.0.3",
     "jest-junit": "^16.0.0",
     "jest-watch-typeahead": "^3.0.1",
